@@ -3,7 +3,6 @@ let router = express.Router();
 let ads = require('../models/Ads.model').schema;
 let client = require('../models/client.model').schema;
 let requestIp = require('request-ip');
-let fileUpload = require('express-fileupload');
 let http = require('http');
 let request = require('request');
 
