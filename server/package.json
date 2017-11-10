@@ -1,0 +1,31 @@
+{
+  "name": "elevatorads",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node ./bin/www"
+  },
+  "dependencies": {
+    "body-parser": "~1.18.2",
+    "debug": "~2.6.9",
+    "ejs": "latest",
+    "express": "~4.15.5",
+    "mongoose": "latest",
+    "morgan": "~1.9.0",
+    "randomstring": "latest",
+    "request-ip": "latest",
+    "serve-favicon": "~2.4.5",
+    "mkdirp": "latest",
+    "multiparty": "latest",
+    "rimraf": "latest",
+    "node-uuid": "latest",
+    "cors": "latest",
+    "request": "latest",
+    "mz": "^2.4.0",
+    "thread": "latest",
+    "download": "latest",
+    "cookie-parser": "latest",
+    "supertest": "latest",
+    "ajax-request": "latest"
+  }
+}
