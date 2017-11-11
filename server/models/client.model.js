@@ -11,18 +11,23 @@ var requestIp = require('request-ip');
 var clientSchema = Schema({
     name: String,
     ip : String,
-    adsList : [], // list of adds_file_names
+    adsList : [], // list of adds_ids
     lastUpdate : Date,
     role : String,
     storage : String,
+    status:String ,
+    nowPlaying : String,
+    playList : [], // local adds_fileNames
+
 });
-clientSchema.methods.connectToServer = function (req,res,returnValue) {
+clientSchema.methods.connectToServer = function (req,res,clientId,callback) {
     let clientIp = requestIp.getClientIp(req);
-    checkAuthority(clientIp,function (result) {
-        if(result==="client" || result==="admin") {
+    let response = {};
+    checkAuthority(clientIp,function (results) {
+        if(results==="client" || results==="admin") {
             Client.find({ip: clientIp}, function (err, result) {
                 if (err) throw err;
-                let response = {};
+                console.log(result.length);
                 if (result.length === 0) {
                     response.statusCode = 200;
                     response.message = "Connect Ok";
@@ -30,24 +35,75 @@ clientSchema.methods.connectToServer = function (req,res,returnValue) {
                         name: "Client - " + clientIp,
                         ip: clientIp,
                         lastUpdate: Date.now(),
-                        role: 'user',
+                        role: "User",
                         adsList: [],
+                        storage: 13.0,// 13 GBs
+                        status:"Disconnected",
+                        playList : [],
+                        nowPlaying: "",
                     });
-                    client.save(function (err) {
-                        if (err) throw (err);
-                        // saved!
-                    })
+                    console.log(results);
+                    if(results === "admin"){
+                        client.role = "Admin";
+                        client.name = "Admin";
+                        client.storage = 100.0; // GBs
+                        client.save(function (err) {
+                            if (err) throw (err);
+                            response.status = true;
+                            return response;
+
+                        });
+                    }
+                    else {
+                        client.save(function (err) {
+                            if (err) throw (err);
+                            response.status = true;
+                            return response;
+                        });
+                    }
                 }
                 if (result.length === 1) {
                     response.statusCode = 202;
                     response.message = "Accepted";
+                    result[0].status = "Connected";
+                    result[0].save(function(err){
+                        if(err) throw err;
+                        response.status = true;
+                        return response;
+                    });
                 }
-                response.status = true;
-                returnValue(response);
             });
         }
         else {
-            res.send('Not Found 404');
+            response.statusCode = 404;
+            response.status = false;
+            response.message = "Not Found";
+            return response;
+        }
+        return response;
+    });
+};
+clientSchema.methods.disconnectFromServer = function (req,res,returnValue) {
+    let clientIp = requestIp.getClientIp(req);
+    let response = {};
+    checkAuthority(clientIp, function (result) {
+        if (result === "client" || result === "admin") {
+            Client.update({ip: clientIp},{status:"Disconnected"}, function (err, result) {
+                if (err) throw err;
+                console.log(result);
+                if(result){
+                    response.statusCode = 200;
+                    response.status = true;
+                    response.message = "Disconnected";
+                    returnValue(response);
+                }
+                else{
+                    response.statusCode = 404;
+                    response.status = false;
+                    response.message = "Not Found";
+                    returnValue(response);
+                }
+            });
         }
     });
 };

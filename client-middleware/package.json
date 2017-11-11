@@ -19,6 +19,7 @@
     "request": "latest",
     "download": "latest",
     "download-file": "latest",
-    "del": "latest"
+    "del": "latest",
+    "socket.io": "latest"
   }
 }

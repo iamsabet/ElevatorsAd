@@ -13,7 +13,7 @@ router.get('/', function(req, res, next) {
     let adminIp = requestIp.getClientIp(req);
     checkAuthority(adminIp,function(result){
        if(result === 'admin'){
-           res.render('admin.html');
+            res.render('admin.html')
        }
        else{
            res.send('Not Found 404');

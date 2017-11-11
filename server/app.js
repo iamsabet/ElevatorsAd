@@ -12,7 +12,7 @@ var client = require('./controllers/client');
 var uploads = require('./controllers/uploader');
 var cors = require('cors');
 var requestIp = require('request-ip');
-
+var io = require("socket.io");
 
 var db = mongoose.connection;
 mongoose.connect('mongodb://localhost:27017/ElevatorAds_db', { useMongoClient: true , autoIndex :true});
@@ -20,6 +20,7 @@ db.on('error', console.error.bind(console, 'connection error:'));
 db.once('open', function() {
     console.log("connected to db");
 });
+
 // view engine setup
 app.set('views', path.join(__dirname, 'client/views'));
 app.engine('html', require('ejs').renderFile);

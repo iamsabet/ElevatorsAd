@@ -26,6 +26,8 @@
     "download": "latest",
     "cookie-parser": "latest",
     "supertest": "latest",
-    "ajax-request": "latest"
+    "ajax-request": "latest",
+    "del": "latest",
+    "socket.io": "latest"
   }
 }

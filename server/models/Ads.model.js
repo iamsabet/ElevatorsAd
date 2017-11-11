@@ -6,6 +6,7 @@ var Client = require('../models/client.model');
 var http = require('http');
 var fs = require('fs');
 var querystring = require('querystring');
+var del = require('del');
 mongoose.connect('mongodb://localhost/ElevatorAds_db', { useMongoClient: true , autoIndex :true});
 var requestIp = require('request-ip');
 var adsSchema = Schema({
@@ -16,7 +17,8 @@ var adsSchema = Schema({
     lastUpdate : Date,
     thumbnail : String,
     playedTimes : Number,
-    time : Number , // seconds
+    size:Number , // float in GBs
+    duration : Number , // seconds
 });
 
 adsSchema.methods.update = function () {
@@ -32,7 +34,8 @@ adsSchema.methods.new = function (newAdd) {
         playedTimes :0,
         thumbnail : '',
         //video time = time / images = show time
-        time: 10,
+        duration: 10,
+        size : 1.2 , //GBs
         format : newAdd.name.split('.')[newAdd.name.split('.').length -1],
     });
     ad.save(function (err) {
@@ -141,8 +144,28 @@ adsSchema.methods.searchAds = function(req,res,searchName){
     });
 };
 
-adsSchema.methods.remove = function () {
-
+adsSchema.methods.remove = function (req,res,nameList,idList) {
+    for (var x in nameList) {
+        if (nameList !== 'undefined') {
+            del.sync(['Files/'+nameList[x], '!public/assets/goat.png'],function(){
+                console.log('File - '+nameList[x] +'   deleted !');
+            });
+            if(x === nameList.length - 1 ){
+                Client.update({},{$pull:{adsList:{$in:idList}}},function(err,result1){
+                    if(err) throw err;
+                    console.log(result1 + "\n Removed From All clients.adsList");
+                    Ad.remove({id:{$in:idList}},function(err,result2){
+                        if(err) throw err;
+                        console.log(result2);
+                        console.log(result1 + "\n Removed Ads Objects in db");
+                        res.send(true);                    });
+                });
+            }
+        }
+        else {
+            res.send(false);
+        }
+    }
 };
 
 adsSchema.pre('save', function(next) {

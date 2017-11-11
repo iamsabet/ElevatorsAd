@@ -9,8 +9,7 @@ let requsetIP = require('request-ip');
 let download = require('download-file');
 let http = require('http');
 var del = require('del');
-let dlPath ='C://Users/Mohammadreza/Desktop/client-middleware/Files/';
-
+var dlPath ='C://Users/Mohammadreza/Desktop/client-middleware/Files/';
 
 /* GET home page. */
 router.get('/', function(req, res){

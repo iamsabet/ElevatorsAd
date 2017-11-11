@@ -11,7 +11,10 @@ router.get('/', function(req, res, next) {
     res.render('Client.html');
 });
 router.get('/connect', function(req, res, next) {
-    client.methods.connectToServer(req,res,function(returnValue){
+    res.send(client.methods.connectToServer(req,res));
+});
+router.get('/disconnect', function(req, res, next) {
+    client.methods.disconnectFromServer(req,res,function(returnValue){
         res.send(returnValue);
     });
 });
