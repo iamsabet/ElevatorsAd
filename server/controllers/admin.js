@@ -110,7 +110,6 @@ router.post('/available', function(req, res, next) {
     let adminIp = requestIp.getClientIp(req);
     let destIp = req.body.destIp;
     let destId = req.body.destId;
-
     checkAuthority(adminIp,function(result) {
         if(result === 'admin'){
             if(destIp !== 'N'){

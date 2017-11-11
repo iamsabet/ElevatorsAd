@@ -330,17 +330,17 @@
             traditional: true,
             data: {ipList: ipList, idList:idList},
             success: function (err,result) {
-                if (result === true) {
+                if (result !== false) {
                     for (let x = 0; x < ipList; x++) {
                         for (let y = 0; y < idList; y++) {
-                            showDialouge(ipList[x] + "Assigned to client :" + idList + ' Done.');
+                            console.log(ipList[x] + "Assigned to client :" + idList + ' Done.');
                         }
                     }
                 }
                 else {
                     for (let x = 0; x < ipList; x++) {
                         for (let y = 0; y < idList; y++) {
-                            showDialouge(ipList[x] + "Assigned to client :" + idList + "Failed.");
+                            console.log(ipList[x] + "Assigned to client :" + idList + "Failed.");
                         }
                     }
                 }
@@ -354,7 +354,7 @@
             data:{destIp : destIp  , deleteId : deleteId},
             success:function(res){
                console.log(res);
-                if(res===true){
+                if(res!==false){
                     element.parents('.eachAd').remove();
                 }
             }

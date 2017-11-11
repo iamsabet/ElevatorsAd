@@ -2,7 +2,7 @@ var express = require('express');
 var mongoose = require("mongoose");
 mongoose.connect('mongodb://localhost/ElevatorAds_db', { useMongoClient: true , autoIndex :true});
 var router = express.Router();
-var client = require('../models/client.model').Schema;
+var client = require('../models/client.model').schema;
 var ads = require('../models/Ads.model');
 var requestIp = require('request-ip');
 var fs = require('fs');
@@ -11,12 +11,12 @@ router.get('/', function(req, res, next) {
     res.render('Client.html');
 });
 router.get('/connect', function(req, res, next) {
-    Client.methods.connectToServer(req,res,function(returnValue){
+    client.methods.connectToServer(req,res,function(returnValue){
         res.send(returnValue);
     });
 });
 router.get('/checkUpdate', function(req, res, next) {
-    Client.methods.checkUpdate(req,res,function(clientAdsList){
+    client.methods.checkUpdate(req,res,function(clientAdsList){
         res.send(clientAdsList);
     });
 });
@@ -45,7 +45,7 @@ router.post('/download', function(req, res, next) { // download files service
         }
     });
 });
-var Client = mongoose.model('clients', client);
+
 module.exports = router;
 
 function checkAuthority(clientIp,callback){

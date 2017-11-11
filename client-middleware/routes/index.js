@@ -1,15 +1,15 @@
-var express = require('express');
-var router = express.Router();
-var favicon = require('serve-favicon');
-var fs = require("fs"),
+let express = require('express');
+let router = express.Router();
+let favicon = require('serve-favicon');
+let fs = require("fs"),
     rimraf = require("rimraf"),
     mkdirp = require("mkdirp");
-var request = require('request');
-var requsetIP = require('request-ip');
-var download = require('download-file');
-var http = require('http');
-var querystring = require('querystring');
-var dlPath ='C://Users/Mohammadreza/Desktop/client-middleware/Files/';
+let request = require('request');
+let requsetIP = require('request-ip');
+let download = require('download-file');
+let http = require('http');
+var del = require('del');
+let dlPath ='C://Users/Mohammadreza/Desktop/client-middleware/Files/';
 
 
 /* GET home page. */
@@ -20,38 +20,56 @@ router.get('/', function(req, res){
 
 // routes
 
-router.post("/downloadNotify",function (req,res){
+router.post("/downloadNotify",function (req,res) {
     let downloadList = [];
-    if(!Array.isArray(req.body.input)){
-        downloadList.push(req.body.input);
-    }
-    else{
-        downloadList = req.body.input;
-    }
-    let downloadUrl = 'http://localhost:3000/client/download/'; // admins ip
-    for(let x in downloadList) {
-        console.log(downloadList[x]);
-        var data = querystring.stringify({
-            input: downloadList[x],
-        });
-
-        // download files ...
-        if(x === downloadList.length -1){
-            res.send(true);
-        }
-    }
-});
-router.post("/deleteNotify",function (req,res){
-    console.log(req.body.input);
-    var deleteNotify = req.body.input;
-    // do devare file ...
-    if(deleteNotify) {
-        for (var x in deleteNotify)
-            console.log(x + " -- " + deleteNotify[x]);
-        res.send(true);
+    console.log('Download Notify');
+    if (!Array.isArray(req.body.notifList)) {
+        downloadList.push(req.body.notifList);
     }
     else {
-        res.send(false);
+        downloadList = req.body.notifList;
     }
+    let downloadUrl;
+    console.log(downloadList);
+    for (let x in downloadList) {
+        console.log(downloadList[x]);
+        var options = {
+            directory: "Files/",
+            filename: downloadList[x].name
+        };
+        downloadUrl = 'http://localhost:6985/' + downloadList[x];// admins ip
+        download(downloadUrl, options, function (err) {
+            if (err) throw err;
+            console.log("Download Completed");
+        });
+    }
+    res.send(true);
 });
+router.post("/deleteNotify",function (req,res) {
+        var deleteList = req.body.notifList;
+        var dList = [];
+        console.log('Delete Notify');
+        if (!Array.isArray(deleteList)) {
+            dList.push(deleteList);
+        }
+        else {
+            dList = deleteList;
+        }
+        console.log(dList);
+        // do delete file ...
+        for (var x in dList) {
+            if (dList !== 'undefined') {
+                del.sync(['Files/'+dList[x], '!public/assets/goat.png'],function(){
+                    console.log('File - '+dList[x] +'   deleted !');
+                });
+                if(x === dList.length - 1 ){
+                    res.send(true);
+                }
+            }
+            else {
+                res.send(false);
+            }
+        }
+    }
+);
 module.exports = router;

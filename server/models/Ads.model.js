@@ -3,6 +3,9 @@ var Schema = mongoose.Schema;
 mongoose.Promise = global.Promise;
 var path = 'C://Users/Mohammadreza/Desktop/ElevatorAds/';
 var Client = require('../models/client.model');
+var http = require('http');
+var fs = require('fs');
+var querystring = require('querystring');
 mongoose.connect('mongodb://localhost/ElevatorAds_db', { useMongoClient: true , autoIndex :true});
 var requestIp = require('request-ip');
 var adsSchema = Schema({
@@ -64,6 +67,7 @@ adsSchema.methods.getAds = function(req,res,destIp,callback) {
 };
 adsSchema.methods.getAdsByList = function(req,res,list,results){
     let clientIp = requestIp.getClientIp(req);
+    console.log(list);
     checkAuthority(clientIp, function (result) {
         if (result === 'admin' || result === 'client') {
             if (list) {

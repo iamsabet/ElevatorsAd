@@ -1,7 +1,6 @@
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 mongoose.Promise = global.Promise;
-var Ad = require('../models/Ads.model');
 var request = require('ajax-request');
 mongoose.connect('mongodb://localhost/ElevatorAds_db', { useMongoClient: true , autoIndex :true});
 var http = require('http');
@@ -82,7 +81,7 @@ clientSchema.methods.download = function(req,res,adId,callback) {
                 if (err) throw err;
                 if (result) {
                     if(result.adsList.contains(adId)) {
-                        Ad.find({id: adId}, function (err, ad) {
+                        ads.find({id: adId}, function (err, ad) {
                             if (err) throw err;
                             callback(ad.name);
                             let x = request('http://localhost:1212/addId');
@@ -135,15 +134,15 @@ clientSchema.methods.assignAd = function (req,res,destIps,adIds,result) {
     if(!Array.isArray(adIds)){
         adIds = adIds.split(',');
     }
+    console.log(adIds);
     for(let x = 0 ; x < destIps.length ; x ++) {
         for (let y = 0; y < adIds.length; y++) {
             Client.updateOne({ip: "::ffff:" + destIps[x]}, {$addToSet: {adsList: adIds[y]}}, function (err, result) {
                 console.log( destIps[x]+ " : - " + adIds[y]);
                 if (err) throw err;
                 if(y===adIds.length-1){
-                    clientSchema.methods.sendNotify('localhost','downloadNotify',adIds,function(result){ //destIps[x]
-                        console.log("send download notify" + result);
-                        res.send(JSON.stringify(result));
+                    sendNotify('localhost','downloadNotify',adIds,res,function(){
+
                     });
                 }
             });
@@ -160,8 +159,8 @@ clientSchema.methods.removeAssign = function(req,res,ip,id){
                 if (result) {
                     var idList = [];
                     idList.push(adId);
-                    clientSchema.methods.sendNotify('localhost', 'deleteNotify', idList, function (results) {
-                        res.send(result);
+                    sendNotify('localhost', 'deleteNotify', idList,res,function(){
+                        res.send(callback);
                     });
                 }
             });
@@ -197,32 +196,7 @@ clientSchema.method.removeFromAll = function(req,res,id,result){
         }
     });
 };
-clientSchema.methods.sendNotify = function(destIp,path,input,results){
 
-    var data = querystring.stringify({
-        input: input,
-    });
-
-    var options = {
-        host: `${destIp}`,
-        port:1212,
-        path:`/${path}`,
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-        }
-    };
-
-    var req = http.request(options, function(res) {
-        res.setEncoding('utf8');
-        results(res);
-    });
-
-    req.write(data);
-    req.end();
-
-
-};
 
 clientSchema.methods.searchClient = function(req,res,searchName){
     let regexp = new RegExp("^" + searchName);
@@ -239,9 +213,9 @@ clientSchema.pre('save', function(next) {
 });
 
 let Client = mongoose.model('clients', clientSchema);
+
 // make this available to our users in our Node applications
 module.exports = Client;
-
 
 
 
@@ -255,3 +229,48 @@ function checkAuthority(clientIp,callback){
     else callback('false');
 }
 
+function sendNotify(destIp,path,input,res){
+    var ads = require('../models/Ads.model');
+    console.log('input : ' +input);
+    var downloadList = [];
+    console.log('Send notify - '+ path);
+    if(!Array.isArray(input)){
+        downloadList.push(input);
+    }
+    else{
+        downloadList = input;
+    }
+    console.log(downloadList);
+    ads.find({id:{$in:input}},function(err,list) {
+        if (err) throw err;
+        if (list.length > 0) {
+            var options = {
+                host: `${destIp}`,
+                port: 1212,
+                path: `/${path}`,
+                method: 'POST',
+                headers: {
+                    'Content-Type': "application/x-www-form-urlencoded"
+                },
+            }
+        };
+        let notifList = [];
+        for (var x = 0; x < list.length; x++) {
+            notifList.push(list[x].name.toString());
+            console.log(list[x].name.toString());
+            if (x === list.length - 1) {
+                console.log("list of names : " + list);
+                var req = http.request(options, function (err, res) {
+
+                });
+                console.log(notifList);
+                var data = querystring.stringify({
+                    notifList: notifList,
+                });
+                req.write(data);
+                req.end();
+                res.send(true);
+            }
+        }
+    });
+}

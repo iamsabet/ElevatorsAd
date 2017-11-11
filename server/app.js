@@ -11,7 +11,7 @@ var admin = require('./controllers/admin');
 var client = require('./controllers/client');
 var uploads = require('./controllers/uploader');
 var cors = require('cors');
-const requestIp = require('request-ip');
+var requestIp = require('request-ip');
 
 
 var db = mongoose.connection;

@@ -18,6 +18,7 @@
     "request-ip": "latest",
     "request": "latest",
     "download": "latest",
-    "download-file": "latest"
+    "download-file": "latest",
+    "del": "latest"
   }
 }
