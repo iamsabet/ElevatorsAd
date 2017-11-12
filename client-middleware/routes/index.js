@@ -71,4 +71,29 @@ router.post("/deleteNotify",function (req,res) {
         }
     }
 );
+
 module.exports = router;
+
+
+function getPlayList(result){
+    // list of file names
+    var options = {
+        host: `localhost`, // server ip address
+        port: 3000,
+        path: `/client/loadPlayList`,
+        method: 'POST',
+        headers: {
+            'Content-Type': "application/x-www-form-urlencoded"
+        },
+    };
+    var req = http.request(options, function (err, res) {
+        if(err) throw err;
+        if(res.length > 0){
+            result(res);
+        }
+        else{
+            // didnt update playList
+        }
+    });
+    req.end();
+};

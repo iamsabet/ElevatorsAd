@@ -23,6 +23,12 @@ router.get('/checkUpdate', function(req, res, next) {
         res.send(clientAdsList);
     });
 });
+router.post('/loadPlayList', function(req, res, next) { // download files service
+
+    client.methods.updatePlayList(req,res,function(err){
+        if(err) throw err;
+    });
+});
 router.post('/download', function(req, res, next) { // download files service
     let adId = req.body.input;
     console.log(adId.toString());
@@ -60,3 +66,4 @@ function checkAuthority(clientIp,callback){
     }
     else callback('false');
 };
+

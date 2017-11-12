@@ -128,34 +128,6 @@ clientSchema.methods.checkUpdate = function (req,res,clientAdsList) {
     });
 };
 
-
-clientSchema.methods.download = function(req,res,adId,callback) {
-    let clientIp = requestIp.getClientIp(req);
-    checkAuthority(clientIp, function (result) {
-        if (result === "client" || result === "admin") {
-            Client.find({ip: clientIp}, function (err, result) {
-                if (err) throw err;
-                if (result) {
-                    if(result.adsList.contains(adId)) {
-                        ads.find({id: adId}, function (err, ad) {
-                            if (err) throw err;
-                            callback(ad.name);
-                            let x = request('http://localhost:1212/addId');
-
-                        });
-                    }
-                }
-                else {
-                    res.send('Unauthorized');
-                }
-            });
-        }
-        else{
-            res.send('Not Found 404');
-        }
-    });
-};
-
 clientSchema.methods.getClients = function(req,res) {
     Client.find({}, function (err, clients) {
         if (err) throw err;
@@ -194,11 +166,16 @@ clientSchema.methods.assignAd = function (req,res,destIps,adIds,result) {
     for(let x = 0 ; x < destIps.length ; x ++) {
         for (let y = 0; y < adIds.length; y++) {
             Client.updateOne({ip: "::ffff:" + destIps[x]}, {$addToSet: {adsList: adIds[y]}}, function (err, result) {
-                console.log( destIps[x]+ " : - " + adIds[y]);
-                if (err) throw err;
-                if(y===adIds.length-1){
-                    sendNotify('localhost','downloadNotify',adIds,res,function(){
-
+                if(err) throw err;
+                if(result) {
+                    getAdsNames(req,res,adIds,function(err,callback) {
+                        if (err) throw err;
+                        if (callback.length > 0) {
+                            clientSchema.methods.updatePlayList(req, res, callback, function (err, results) {
+                                if (err) throw err;
+                                sendNotify('localhost', 'downloadNotify', adIds, res);
+                            });
+                        }
                     });
                 }
             });
@@ -215,9 +192,7 @@ clientSchema.methods.removeAssign = function(req,res,ip,id){
                 if (result) {
                     var idList = [];
                     idList.push(adId);
-                    sendNotify('localhost', 'deleteNotify', idList,res,function(){
-                        res.send(callback);
-                    });
+                    sendNotify('localhost', 'deleteNotify', idList,res);
                 }
             });
         }
@@ -252,8 +227,50 @@ clientSchema.method.removeFromAll = function(req,res,id,result){
         }
     });
 };
+clientSchema.methods.updatePlayList = function(req,res,input,results) { // input = namesList
+    let clientIp = requestIp.getClientIp(req);
+    checkAuthority(clientIp, function (result) {
+        if (result === "admin" || result === "client") {
+            console.log('input : ' + input);
+            var nameList = [];
+            if (!Array.isArray(input)) {
+                nameList.push(input);
+            }
+            else {
+                nameList = input;
+            }
+            console.log(nameList);
+            Client.update({ip: clientIp},{$set: {playList: nameList}}, function (err, list) {
+                if (err) throw err;
+                if(list){
+                    results(true);
+                }
+            });
+        }
+        else{
+            results(false);
+        }
+    });
 
+};
+clientSchema.methods.getPlayList = function(req,res) {
+    let clientIp = requestIp.getClientIp(req);
+    checkAuthority(clientIp, function (result) {
+        if (result === "admin" || result === "client") {
+            Client.find({ip: clientIp}, function (err, list) {
+                console.log(list);
+                if (err) throw err;
+                if(list.length > 0){
+                    res.send(list.playList);
+                }
+            });
+        }
+        else{
+            res.send('Not Found - 404');
+        }
+    });
 
+};
 clientSchema.methods.searchClient = function(req,res,searchName){
     let regexp = new RegExp("^" + searchName);
     Client.find({name: regexp}, function (err, list) {
@@ -297,7 +314,7 @@ function sendNotify(destIp,path,input,res){
         downloadList = input;
     }
     console.log(downloadList);
-    ads.find({id:{$in:input}},function(err,list) {
+    ads.find({id:{$in:downloadList}},function(err,list) {
         if (err) throw err;
         if (list.length > 0) {
             var options = {
@@ -329,4 +346,29 @@ function sendNotify(destIp,path,input,res){
             }
         }
     });
-}
+};
+
+function getAdsNames(req,res,idList,callback){
+    var ads = require('../models/Ads.model');
+    console.log('input : ' +idList);
+    var downloadList = [];
+    console.log('Send notify - '+ path);
+    if(!Array.isArray(idList)){
+        downloadList.push(idList);
+    }
+    else{
+        downloadList = idList;
+    }
+    console.log(downloadList);
+    ads.methods.getAdsNames(req,res,idList,function(result){
+        if(err) throw err;
+        if(result.length > 0){
+            console.log(result);
+            callback(result);
+        }
+        else{
+            callback(result);
+        }
+    });
+};
+
